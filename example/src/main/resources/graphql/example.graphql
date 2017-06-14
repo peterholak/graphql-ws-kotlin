@@ -1,0 +1,17 @@
+type Query {
+    currentMessage: Message!
+}
+
+type Mutation {
+    setMessage(text: String!): Message!
+}
+
+type Subscription {
+    messageChanged: Message!
+    unrelatedMessage: Message!
+}
+
+type Message {
+    text: String!
+    randomNumber: Int!
+}

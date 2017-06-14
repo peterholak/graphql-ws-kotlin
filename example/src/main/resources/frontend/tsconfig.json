@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "jsx": "react",
+    "sourceMap": true,
+    "strict": true,
+    "lib": [ "dom", "es2015", "esnext.asynciterable" ]
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}
