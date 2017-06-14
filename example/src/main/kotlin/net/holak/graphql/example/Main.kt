@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
     val subscriptions = SimpleSubscriptions<Session>()
     val store = Store()
     val graphQL = loadSchema(store, latePublisher)
-    val server = ExampleServer(subscriptions, graphQL)
+    val server = ExampleServer(subscriptions, graphQL, latePublisher)
 
     latePublisher.publisher = SimplePublisher(graphQL, subscriptions, server.transport())
 }

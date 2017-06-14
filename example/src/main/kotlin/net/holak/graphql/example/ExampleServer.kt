@@ -3,6 +3,7 @@ package net.holak.graphql.example
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import graphql.GraphQL
+import net.holak.graphql.ws.Publisher
 import net.holak.graphql.ws.SubscriptionHandler
 import net.holak.graphql.ws.SubscriptionWebSocketHandler
 import org.eclipse.jetty.websocket.api.Session
@@ -11,7 +12,7 @@ import spark.Service
 import java.io.PrintWriter
 import java.io.StringWriter
 
-class ExampleServer(subscriptions: SubscriptionHandler<Session>, val graphQL: GraphQL) {
+class ExampleServer(subscriptions: SubscriptionHandler<Session>, val graphQL: GraphQL, val publisher: Publisher) {
     val http = Service.ignite()!!
     val gson = Gson()
     val socketHandler: SubscriptionWebSocketHandler
@@ -29,6 +30,11 @@ class ExampleServer(subscriptions: SubscriptionHandler<Session>, val graphQL: Gr
             if (req.headers("Sec-WebSocket-Protocol") == "graphql-ws") {
                 res.header("Sec-WebSocket-Protocol", "graphql-ws")
             }
+        }
+
+        http.post("/notify-unrelated") { req, _ ->
+            val value = gson.fromJson(req.body(), LinkedTreeMap::class.java)["value"].toString()
+            publisher.publish("unrelatedMessage", value)
         }
 
         addGraphQLPostHandlers()

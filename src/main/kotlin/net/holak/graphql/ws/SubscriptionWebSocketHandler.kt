@@ -18,6 +18,7 @@ class SubscriptionWebSocketHandler(val subscriptions: SubscriptionHandler<Sessio
 
     @OnWebSocketClose
     fun onWebSocketClose(session: Session, statusCode: Int, reason: String) {
+        println("Disconnected: " + reason)
         subscriptions.disconnected(session)
         sessions.remove(session)
     }

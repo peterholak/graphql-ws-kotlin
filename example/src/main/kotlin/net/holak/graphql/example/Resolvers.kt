@@ -5,6 +5,7 @@ package net.holak.graphql.example
 import com.coxautodev.graphql.tools.GraphQLMutationResolver
 import com.coxautodev.graphql.tools.GraphQLQueryResolver
 import com.coxautodev.graphql.tools.GraphQLSubscriptionResolver
+import graphql.schema.DataFetchingEnvironment
 import net.holak.graphql.ws.Publisher
 
 class Store(var currentMessage: Message = Message("Hello world"))
@@ -30,7 +31,7 @@ class SubscriptionResolver(val store: Store) : GraphQLSubscriptionResolver {
         return store.currentMessage
     }
 
-    fun unrelatedMessage(): Message {
-        return Message("y")
+    fun unrelatedMessage(env: DataFetchingEnvironment): Message {
+        return Message(env.getContext<String>())
     }
 }

@@ -26,6 +26,8 @@ class SimpleSubscriptions<Client> : SubscriptionHandler<Client> {
     override val subscriptionsByClient = ConcurrentHashMap<Client, ConcurrentHashMap<String, Subscription<Client>>>()
 
     override fun subscribe(client: Client, start: Start) {
+        // TODO: validation here, but first graphql-java must support it
+
         val id = Identifier(client, start.id)
 
         val toNotify = subscriptionToNotify(start.payload.query, start.payload.operationName)
@@ -65,7 +67,11 @@ class SimplePublisher<Client>(val graphQL: GraphQL, val sub: SubscriptionHandler
                     subscription.start.payload.variables ?: emptyMap()
             )
 
-            transport(it.client, Data(subscription.start.id, result))
+            try {
+                transport(it.client, Data(subscription.start.id, result))
+            }catch(e: Exception) {
+                // TODO: log transport errors, but it's no reason to not keep going
+            }
         }
     }
 }
