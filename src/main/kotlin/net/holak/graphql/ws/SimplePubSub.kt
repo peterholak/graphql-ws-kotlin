@@ -8,22 +8,22 @@ import java.lang.IllegalArgumentException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
-data class Subscription<out Client>(
-        val client: Client,
-        val start: Start,
-        val subscriptionName: String
-)
-
 class NoSuchSubscriptionException(message: String) : Exception(message)
 
+typealias Transport<Client> = (Client, Data) -> Unit
+typealias Identifier<T> = SubscriptionHandler.Identifier<T>
+
+/**
+ * TODO: this is not currently thread safe
+ *
+ * Places the data directly into context when running the subscription "queries",
+ * which should probably be configurable.
+ */
 @Suppress("unused")
-/** TODO: this is not currently thread safe */
-class SimpleSubscriptionHandler<Client> : SubscriptionServerHandler<Client> {
+class SimpleSubscriptions<Client> : SubscriptionHandler<Client> {
 
-    data class Identifier<out Client>(val client: Client, val subscriptionId: String)
-
-    val subscriptions = ConcurrentHashMap<String, ConcurrentLinkedQueue<Identifier<Client>>>()
-    val subscriptionsByClient = ConcurrentHashMap<Client, ConcurrentHashMap<String, Subscription<Client>>>()
+    override val subscriptions = ConcurrentHashMap<String, ConcurrentLinkedQueue<Identifier<Client>>>()
+    override val subscriptionsByClient = ConcurrentHashMap<Client, ConcurrentHashMap<String, Subscription<Client>>>()
 
     override fun subscribe(client: Client, start: Start) {
         val id = Identifier(client, start.id)
@@ -34,7 +34,7 @@ class SimpleSubscriptionHandler<Client> : SubscriptionServerHandler<Client> {
                 .add(id)
         subscriptionsByClient
                 .getOrPut(client, { ConcurrentHashMap() })
-                .put(start.id, Subscription(client, start, toNotify))
+                .put(start.id, Subscription(client, start, toNotify, null))
     }
 
     override fun unsubscribe(client: Client, subscriptionId: String) {
@@ -50,43 +50,24 @@ class SimpleSubscriptionHandler<Client> : SubscriptionServerHandler<Client> {
             subscriptions[subscription.subscriptionName]?.remove(Identifier(client, subscriptionId))
         }
     }
+}
 
-    /** A shorthand version that simply uses the context's "class name with the first letter converted to lowercase"as the subscription name. */
-    inline fun <reified T> publish(context: T?, graphQl: GraphQL, noinline send: (Client, Data) -> Unit) {
-        // TODO: this obviously only supports that one special convention of class names right now, which is not enough.
-        val className = T::class.java.simpleName
-        val camelCased = className[0].toLowerCase() + className.substring(1)
-        publish(camelCased, context, graphQl, send)
-    }
+class SimplePublisher<Client>(val graphQL: GraphQL, val sub: SubscriptionHandler<Client>, val transport: Transport<Client>) : TypedPublisher() {
+    override fun publish(subscriptionName: String, data: Any?) {
+        sub.subscriptions[subscriptionName]?.forEach {
+            val subscription = sub.subscriptionsByClient[it.client]!![it.subscriptionId]!!
 
-    inline fun <reified T> publish(noinline executeAndSend: (Client, Subscription<Client>) -> Unit) {
-        // TODO: this obviously only supports that one special convention of class names right now, which is not enough.
-        val className = T::class.java.simpleName
-        val camelCased = className[0].toLowerCase() + className.substring(1)
-        publish(camelCased, executeAndSend)
-    }
-
-    fun <T> publish(subscriptionName: String, context: T? = null, graphQl: GraphQL, send: (Client, Data) -> Unit) {
-        publish(subscriptionName) { client, subscription ->
             // TODO: Some deduplication would be useful here?
-            val result = graphQl.execute(
+            val result = graphQL.execute(
                     subscription.start.payload.query,
                     subscription.start.payload.operationName,
-                    context,
+                    data,
                     subscription.start.payload.variables ?: emptyMap()
             )
 
-            send(client, Data(subscription.start.id, result))
+            transport(it.client, Data(subscription.start.id, result))
         }
     }
-
-    fun publish(subscriptionName: String, executeAndSend: (Client, Subscription<Client>) -> Unit) {
-        subscriptions[subscriptionName]?.forEach {
-            val subscription = subscriptionsByClient[it.client]!![it.subscriptionId]!!
-            executeAndSend(it.client, subscription)
-        }
-    }
-
 }
 
 // TODO: a better way to obtain this information?

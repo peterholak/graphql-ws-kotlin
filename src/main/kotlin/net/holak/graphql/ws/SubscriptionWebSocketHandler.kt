@@ -11,14 +11,14 @@ import java.util.concurrent.ConcurrentLinkedQueue
 /** TODO: thread safety */
 @Suppress("unused", "UNUSED_PARAMETER")
 @WebSocket
-class SimpleServer(val subscriptionHandler: SimpleSubscriptionHandler<Session>) {
+class SubscriptionWebSocketHandler(val subscriptions: SubscriptionHandler<Session>) {
     val sessions = ConcurrentLinkedQueue<Session>()
 
     val gson = GsonBuilder().registerTypeAdapter(OperationMessage::class.java, MessageDeserializer()).create()!!
 
     @OnWebSocketClose
     fun onWebSocketClose(session: Session, statusCode: Int, reason: String) {
-        subscriptionHandler.disconnected(session)
+        subscriptions.disconnected(session)
         sessions.remove(session)
     }
 
@@ -36,9 +36,9 @@ class SimpleServer(val subscriptionHandler: SimpleSubscriptionHandler<Session>) 
 
         when (operation) {
             is ConnectionInit -> sendOperation(session, ConnectionAck())
-            is Start -> subscriptionHandler.subscribe(session, operation)
+            is Start -> subscriptions.subscribe(session, operation)
             is Stop -> {
-                subscriptionHandler.unsubscribe(session, operation.id)
+                subscriptions.unsubscribe(session, operation.id)
                 sendOperation(session, Complete(operation.id))
             }
             is ConnectionTerminate -> session.close()
@@ -49,5 +49,7 @@ class SimpleServer(val subscriptionHandler: SimpleSubscriptionHandler<Session>) 
     fun sendOperation(session: Session, message: ServerToClientMessage<*>) {
         session.remote.sendString(gson.toJson(message))
     }
+
+    val transport: Transport<Session> = { session, data -> sendOperation(session, data) }
 
 }
