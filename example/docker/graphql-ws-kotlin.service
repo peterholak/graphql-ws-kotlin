@@ -1,0 +1,13 @@
+[Unit]
+Description=graphql-ws-kotlin example app
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker start -a graphql-ws-kotlin
+ExecStop=/usr/bin/docker stop graphql-ws-kotlin
+
+[Install]
+WantedBy=default.target
+

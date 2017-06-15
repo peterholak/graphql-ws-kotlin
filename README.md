@@ -14,6 +14,8 @@ you can use as a client (see the frontend in `example/src/main/resources/fronten
 - Run the `example` project (from the IDE, or by running `./gradlew :example:run`),
 then open your browser at http://localhost:4567/
 
+- You can see a live demo at http://graphql.holak.net/
+
 ### Use the library
 
 For now, there is no released version, so you can only use the current snapshot.

@@ -1,0 +1,1 @@
+This docker image is used to run the live demo at http://graphql.holak.net/
