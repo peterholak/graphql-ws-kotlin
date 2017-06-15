@@ -30,7 +30,7 @@ repositories {
 Then add the dependency
 
 ```
-compile 'com.github.peterholak:graphql-java-tools:subscription-support-SNAPSHOT'
+compile 'com.github.peterholak:graphql-ws-kotlin:-SNAPSHOT'
 ```
 
 ## What still needs to be done
