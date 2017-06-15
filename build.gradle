@@ -6,6 +6,7 @@ buildscript {
 
     repositories {
         mavenCentral()
+        maven { url "http://dl.bintray.com/jetbrains/spek" }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -16,6 +17,7 @@ apply plugin: 'kotlin'
 
 repositories {
     mavenCentral()
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
@@ -23,4 +25,10 @@ dependencies {
     compile 'com.graphql-java:graphql-java:3.0.0'
     compile 'org.eclipse.jetty.websocket:websocket-api:9.4.6.v20170531'
     compile 'com.google.code.gson:gson:2.8.1'
+    testCompile 'org.junit.platform:junit-platform-runner:1.0.0-M4'
+    testCompile 'org.jetbrains.spek:spek-api:1.1.2'
+    testCompile 'com.github.peterholak:graphql-java-tools:subscription-support-SNAPSHOT'
+    testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.2'
 }
+
+test.outputs.upToDateWhen { false }

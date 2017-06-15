@@ -6,7 +6,7 @@ import graphql.ExecutionResult
 import graphql.GraphQL
 import graphql.GraphQLError
 import net.holak.graphql.ws.Publisher
-import net.holak.graphql.ws.SubscriptionHandler
+import net.holak.graphql.ws.Subscriptions
 import net.holak.graphql.ws.SubscriptionWebSocketHandler
 import org.eclipse.jetty.websocket.api.Session
 import spark.Response
@@ -21,7 +21,7 @@ class SkipEmptyErrors(result: ExecutionResult) {
 
 }
 
-class ExampleServer(subscriptions: SubscriptionHandler<Session>, val graphQL: GraphQL, val publisher: Publisher) {
+class ExampleServer(subscriptions: Subscriptions<Session>, val graphQL: GraphQL, val publisher: Publisher) {
     val http = Service.ignite()!!
     val gson = Gson()
     val socketHandler: SubscriptionWebSocketHandler

@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 /** TODO: thread safety */
 @Suppress("unused", "UNUSED_PARAMETER")
 @WebSocket
-class SubscriptionWebSocketHandler(val subscriptions: SubscriptionHandler<Session>, val publisher: Publisher) {
+class SubscriptionWebSocketHandler(val subscriptions: Subscriptions<Session>, val publisher: Publisher) {
     val sessions = ConcurrentLinkedQueue<Session>()
 
     val gson = GsonBuilder().registerTypeAdapter(OperationMessage::class.java, MessageDeserializer()).create()!!

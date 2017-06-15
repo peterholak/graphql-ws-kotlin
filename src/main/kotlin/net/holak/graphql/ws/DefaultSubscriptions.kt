@@ -1,7 +1,6 @@
 package net.holak.graphql.ws
 
 import graphql.ErrorType
-import graphql.GraphQL
 import graphql.GraphQLError
 import graphql.language.Document
 import graphql.language.Field
@@ -13,10 +12,7 @@ import java.lang.IllegalArgumentException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
-class NoSuchSubscriptionException(message: String) : Exception(message)
-
-typealias Transport<Client> = (Client, Data) -> Unit
-typealias Identifier<T> = SubscriptionHandler.Identifier<T>
+typealias Identifier<T> = Subscriptions.Identifier<T>
 
 /**
  * TODO: this is not currently thread safe
@@ -25,7 +21,7 @@ typealias Identifier<T> = SubscriptionHandler.Identifier<T>
  * which should probably be configurable.
  */
 @Suppress("unused")
-class SimpleSubscriptions<Client>(val schema: GraphQLSchema) : SubscriptionHandler<Client> {
+class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Client> {
 
     override val subscriptions = ConcurrentHashMap<String, ConcurrentLinkedQueue<Identifier<Client>>>()
     override val subscriptionsByClient = ConcurrentHashMap<Client, ConcurrentHashMap<String, Subscription<Client>>>()
@@ -65,28 +61,6 @@ class SimpleSubscriptions<Client>(val schema: GraphQLSchema) : SubscriptionHandl
         val ids = subscriptionsByClient.remove(client) ?: return
         ids.forEach { (subscriptionId, subscription) ->
             subscriptions[subscription.subscriptionName]?.remove(Identifier(client, subscriptionId))
-        }
-    }
-}
-
-class SimplePublisher<Client>(val graphQL: GraphQL, val sub: SubscriptionHandler<Client>, val transport: Transport<Client>) : TypedPublisher() {
-    override fun publish(subscriptionName: String, data: Any?) {
-        sub.subscriptions[subscriptionName]?.forEach {
-            val subscription = sub.subscriptionsByClient[it.client]!![it.subscriptionId]!!
-
-            // TODO: Some deduplication would be useful here?
-            val result = graphQL.execute(
-                    subscription.start.payload.query,
-                    subscription.start.payload.operationName,
-                    data,
-                    subscription.start.payload.variables ?: emptyMap()
-            )
-
-            try {
-                transport(it.client, Data(subscription.start.id, result))
-            }catch(e: Exception) {
-                // TODO: log transport errors, but it's no reason to not keep going
-            }
         }
     }
 }

@@ -13,8 +13,8 @@ fun main(args: Array<String>) {
     val (graphQL, schema) = loadSchema(store, latePublisher)
     val server = ExampleServer(lateSubscriptions, graphQL, latePublisher)
 
-    lateSubscriptions.handler = SimpleSubscriptions(schema)
-    latePublisher.publisher = SimplePublisher(graphQL, lateSubscriptions.handler, server.transport())
+    lateSubscriptions.handler = DefaultSubscriptions(schema)
+    latePublisher.publisher = DefaultPublisher(graphQL, lateSubscriptions.handler, server.transport())
 }
 
 fun loadSchema(store: Store, publisher: Publisher): Pair<GraphQL, GraphQLSchema> {
