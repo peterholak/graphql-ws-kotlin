@@ -27,7 +27,9 @@ object DefaultPublisherSpec : Spek({
             val client = mock<Session>()
             whenever(subscriptions.subscriptions)
                     .thenReturn(mapOf(
-                            "hello" to listOf(Identifier(client, "1"))
+                            "hello" to listOf(
+                                    Identifier(client, "1")
+                            )
                     ))
             whenever(subscriptions.subscriptionsByClient)
                     .thenReturn(mapOf(

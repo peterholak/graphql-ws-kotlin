@@ -4,7 +4,7 @@ import graphql.GraphQL
 
 typealias Transport<Client> = (Client, Data) -> Unit
 
-class DefaultPublisher<Client>(val graphQL: GraphQL, val sub: Subscriptions<Client>, val transport: Transport<Client>) : TypedPublisher() {
+class DefaultPublisher<Client>(val graphQL: GraphQL, val sub: Subscriptions<Client>, val transport: Transport<Client>) : Publisher {
     override fun publish(subscriptionName: String, data: Any?) {
         sub.subscriptions[subscriptionName]?.forEach {
             val subscription = sub.subscriptionsByClient[it.client]!![it.subscriptionId]!!
