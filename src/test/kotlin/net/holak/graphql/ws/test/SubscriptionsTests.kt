@@ -1,5 +1,6 @@
-package net.holak.graphql.ws
+package net.holak.graphql.ws.test
 
+import net.holak.graphql.ws.DefaultSubscriptions
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it

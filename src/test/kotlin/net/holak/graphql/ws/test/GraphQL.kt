@@ -1,6 +1,6 @@
 @file:Suppress("unused", "UNUSED_PARAMETER")
 
-package net.holak.graphql.ws
+package net.holak.graphql.ws.test
 
 import com.coxautodev.graphql.tools.GraphQLMutationResolver
 import com.coxautodev.graphql.tools.GraphQLQueryResolver
@@ -28,7 +28,7 @@ val schemaDefinition = """
 fun testGraphQL(): GraphQLWithSchema {
     val schema = SchemaParser.newParser()
             .schemaString(schemaDefinition)
-            .resolvers(Query(), Mutation(), Subscription())
+            .resolvers(Query(), Mutation(), SubscriptionResolver())
             .build()
             .makeExecutableSchema()
 
@@ -43,6 +43,6 @@ class Mutation : GraphQLMutationResolver {
     fun setHello(text: String) = "Mutation"
 }
 
-class Subscription : GraphQLSubscriptionResolver {
+class SubscriptionResolver : GraphQLSubscriptionResolver {
     val helloChanged = "Subscription"
 }
