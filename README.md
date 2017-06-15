@@ -7,4 +7,5 @@ It uses the same protocol as https://github.com/apollographql/subscriptions-tran
 
 ## Getting started
 
-- Run the `example` project, then open your browser at http://localhost:4567/
+- Run the `example` project (from the IDE, or by running `./gradlew :example:run`),
+then open your browser at http://localhost:4567/

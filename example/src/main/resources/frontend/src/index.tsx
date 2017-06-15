@@ -4,9 +4,9 @@ import * as GraphiQL from 'graphiql'
 import { graphQLFetcher } from './fetcher'
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 
-// Change this in order to use webpack-dev-server
-// const host = window.location.host
-const host = 'localhost:4567'
+// Change this when running under webpack-dev-server
+const host = window.location.host
+// const host = 'localhost:4567'
 
 const subscriptionClient = new SubscriptionClient(
     'ws://' + host + "/subscriptions",
@@ -21,12 +21,13 @@ function postFetcher(payload: any) {
         }).then((response: Response) => response.json())
 }
 
-interface SubscriptionData { id: string, payload: any }
+interface SubscriptionData { payload: { id: string, data?: any, errors?: any }, reactKey: number }
 interface State { events: SubscriptionData[], status: string }
 class App extends React.Component<{}, State> {
     state: State = { events: [], status: 'disconnected' }
     fetcher = graphQLFetcher(subscriptionClient, postFetcher, this.onSubscriptionData.bind(this))
     unrelatedValueElement: HTMLInputElement
+    keyCounter = 0
 
     componentDidMount() {
         subscriptionClient.onConnecting(() => this.setState({ status: 'connecting' }))
@@ -51,7 +52,7 @@ class App extends React.Component<{}, State> {
                     <div>WebSocket status: {this.state.status}</div>
                 </div>
                 <div style={{flexGrow: 0.75, height: '100%', overflow: 'auto'}}>
-                    {this.state.events.map(e => <div>{JSON.stringify(e)}</div>)}
+                    {this.state.events.map(e => <div key={e.reactKey}>{JSON.stringify(e.payload)}</div>)}
                 </div>
             </div>
             <div style={{height: '75%'}}>
@@ -61,10 +62,11 @@ class App extends React.Component<{}, State> {
     }
 
     onSubscriptionData(id, result, error) {
+        this.keyCounter++
         if (result !== undefined) {
-            this.setState({ events: [ ...this.state.events, { id, payload: result } ] })
+            this.setState({ events: [ ...this.state.events, { payload: { id, data: result }, reactKey: this.keyCounter } ] })
         }else{
-            this.setState({ events: [ ...this.state.events, { id, payload: error } ] })
+            this.setState({ events: [ ...this.state.events, { payload: { id, errors: error }, reactKey: this.keyCounter } ] })
         }
     }
 

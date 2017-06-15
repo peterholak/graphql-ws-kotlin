@@ -11,7 +11,8 @@ const config = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: '/',
-        filename: 'assets/[name].[chunkhash].js'
+        filename: 'assets/[name].js'
+        // filename: 'assets/[name].[chunkhash].js'
     },
     resolve: {
         extensions: ['.ts', '.tsx', '.js']
@@ -21,6 +22,7 @@ const config = {
             {test: /\.tsx?$/, use: 'awesome-typescript-loader', exclude: /node_modules/}
         ]
     },
+    devtool: 'sourcemap',
     plugins: [
         new webpack.optimize.CommonsChunkPlugin({
             name: 'vendor',
@@ -29,8 +31,7 @@ const config = {
             }
         }),
         new HtmlWebpackPlugin({ template: 'src/index.html' }),
-        new CopyWebpackPlugin([{ from: 'node_modules/graphiql/graphiql.css', to: 'assets/css' }]),
-        new WebpackCleanupPlugin()
+        new CopyWebpackPlugin([{ from: 'node_modules/graphiql/graphiql.css', to: 'assets/css' }])
     ],
 
     devServer: {

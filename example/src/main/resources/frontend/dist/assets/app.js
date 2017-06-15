@@ -69,9 +69,9 @@ var ReactDOM = __webpack_require__(96);
 var GraphiQL = __webpack_require__(182);
 var fetcher_1 = __webpack_require__(181);
 var subscriptions_transport_ws_1 = __webpack_require__(183);
-// Change this in order to use webpack-dev-server
-// const host = window.location.host
-var host = 'localhost:4567';
+// Change this when running under webpack-dev-server
+var host = window.location.host;
+// const host = 'localhost:4567'
 var subscriptionClient = new subscriptions_transport_ws_1.SubscriptionClient('ws://' + host + "/subscriptions", { reconnect: true });
 function postFetcher(payload) {
     return fetch('http://' + host + '/graphql', {
@@ -86,6 +86,7 @@ var App = (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.state = { events: [], status: 'disconnected' };
         _this.fetcher = fetcher_1.graphQLFetcher(subscriptionClient, postFetcher, _this.onSubscriptionData.bind(_this));
+        _this.keyCounter = 0;
         return _this;
     }
     App.prototype.componentDidMount = function () {
@@ -111,16 +112,17 @@ var App = (function (_super) {
                     React.createElement("div", null,
                         "WebSocket status: ",
                         this.state.status)),
-                React.createElement("div", { style: { flexGrow: 0.75, height: '100%', overflow: 'auto' } }, this.state.events.map(function (e) { return React.createElement("div", null, JSON.stringify(e)); }))),
+                React.createElement("div", { style: { flexGrow: 0.75, height: '100%', overflow: 'auto' } }, this.state.events.map(function (e) { return React.createElement("div", { key: e.reactKey }, JSON.stringify(e.payload)); }))),
             React.createElement("div", { style: { height: '75%' } },
                 React.createElement(GraphiQL, { style: { flexGrow: 1 }, fetcher: this.fetcher })));
     };
     App.prototype.onSubscriptionData = function (id, result, error) {
+        this.keyCounter++;
         if (result !== undefined) {
-            this.setState({ events: this.state.events.concat([{ id: id, payload: result }]) });
+            this.setState({ events: this.state.events.concat([{ payload: { id: id, data: result }, reactKey: this.keyCounter }]) });
         }
         else {
-            this.setState({ events: this.state.events.concat([{ id: id, payload: error }]) });
+            this.setState({ events: this.state.events.concat([{ payload: { id: id, errors: error }, reactKey: this.keyCounter }]) });
         }
     };
     App.prototype.notifyUnrelated = function () {
@@ -144,3 +146,4 @@ ReactDOM.render(React.createElement(App, null), document.getElementById('app'));
 /***/ })
 
 },[184]);
+//# sourceMappingURL=app.js.map

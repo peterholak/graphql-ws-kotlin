@@ -2,7 +2,9 @@ package net.holak.graphql.example
 
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
+import graphql.ExecutionResult
 import graphql.GraphQL
+import graphql.GraphQLError
 import net.holak.graphql.ws.Publisher
 import net.holak.graphql.ws.SubscriptionHandler
 import net.holak.graphql.ws.SubscriptionWebSocketHandler
@@ -11,6 +13,13 @@ import spark.Response
 import spark.Service
 import java.io.PrintWriter
 import java.io.StringWriter
+
+class SkipEmptyErrors(result: ExecutionResult) {
+    val errors: List<GraphQLError>? = if (result.errors.isEmpty()) { null } else { result.errors }
+    val extensions: Map<*, *>? = result.extensions
+    val data: Any? = result.getData<Any>()
+
+}
 
 class ExampleServer(subscriptions: SubscriptionHandler<Session>, val graphQL: GraphQL, val publisher: Publisher) {
     val http = Service.ignite()!!
@@ -30,6 +39,7 @@ class ExampleServer(subscriptions: SubscriptionHandler<Session>, val graphQL: Gr
             if (req.headers("Sec-WebSocket-Protocol") == "graphql-ws") {
                 res.header("Sec-WebSocket-Protocol", "graphql-ws")
             }
+            corsAllowEveryone(res)
         }
 
         http.post("/notify-unrelated") { req, _ ->
@@ -54,20 +64,15 @@ class ExampleServer(subscriptions: SubscriptionHandler<Session>, val graphQL: Gr
     }
 
     private fun addGraphQLPostHandlers() {
-        http.options("/graphql") { _, res ->
-            corsAllowEveryone(res)
-            ""
-        }
         http.post("/graphql") { req, res ->
             try {
                 res.type("application/json")
                 val body = gson.fromJson(req.body(), LinkedTreeMap::class.java)
-                corsAllowEveryone(res)
 
                 @Suppress("UNCHECKED_CAST")
                 val variables = body["variables"] as Map<String, Any?>? ?: emptyMap()
                 val result = graphQL.execute(body["query"] as String, body["operationName"] as String?, null, variables)
-                return@post gson.toJson(result)
+                return@post gson.toJson(SkipEmptyErrors(result))
             }catch(e: Exception) {
                 return@post exceptionToJson(e)
             }
