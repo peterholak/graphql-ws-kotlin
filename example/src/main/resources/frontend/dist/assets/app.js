@@ -8,13 +8,16 @@ webpackJsonp([0],{
 /* Based on from https://github.com/apollographql/GraphiQL-Subscriptions-Fetcher */
 Object.defineProperty(exports, "__esModule", { value: true });
 var graphql_1 = __webpack_require__(7);
-var hasSubscriptionOperation = function (graphQlParams) {
-    var queryDoc = graphql_1.parse(graphQlParams.query);
-    for (var _i = 0, _a = queryDoc.definitions; _i < _a.length; _i++) {
+var isSubscriptionOperation = function (graphQlParams) {
+    var document = graphql_1.parse(graphQlParams.query);
+    for (var _i = 0, _a = document.definitions; _i < _a.length; _i++) {
         var definition = _a[_i];
         if (definition.kind === 'OperationDefinition') {
             var operation = definition.operation;
-            if (operation === 'subscription' && (graphQlParams.operationName === undefined || (definition.name && graphQlParams.operationName === definition.name.value))) {
+            if (operation === 'subscription' &&
+                // If there is more than one operation, only consider it a subscription if that is the operation we're running.
+                (graphQlParams.operationName === undefined ||
+                    (definition.name && graphQlParams.operationName === definition.name.value))) {
                 return true;
             }
         }
@@ -23,9 +26,8 @@ var hasSubscriptionOperation = function (graphQlParams) {
 };
 exports.graphQLFetcher = function (subscriptionsClient, fallbackFetcher, subscribedCallback) {
     return function (graphQLParams) {
-        if (subscriptionsClient && hasSubscriptionOperation(graphQLParams)) {
-            var id_1;
-            id_1 = subscriptionsClient.subscribe({
+        if (isSubscriptionOperation(graphQLParams)) {
+            var id_1 = subscriptionsClient.subscribe({
                 query: graphQLParams.query,
                 variables: graphQLParams.variables,
                 operationName: graphQLParams.operationName
