@@ -30,7 +30,7 @@ class ExampleServer(subscriptions: SubscriptionHandler<Session>, val graphQL: Gr
 
     init {
         http.port(4567)
-        socketHandler = SubscriptionWebSocketHandler(subscriptions)
+        socketHandler = SubscriptionWebSocketHandler(subscriptions, publisher)
         http.webSocket("/subscriptions", socketHandler)
 
         http.staticFiles.location("frontend/dist")

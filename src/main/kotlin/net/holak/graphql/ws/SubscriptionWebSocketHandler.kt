@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 /** TODO: thread safety */
 @Suppress("unused", "UNUSED_PARAMETER")
 @WebSocket
-class SubscriptionWebSocketHandler(val subscriptions: SubscriptionHandler<Session>) {
+class SubscriptionWebSocketHandler(val subscriptions: SubscriptionHandler<Session>, val publisher: Publisher) {
     val sessions = ConcurrentLinkedQueue<Session>()
 
     val gson = GsonBuilder().registerTypeAdapter(OperationMessage::class.java, MessageDeserializer()).create()!!
@@ -37,7 +37,13 @@ class SubscriptionWebSocketHandler(val subscriptions: SubscriptionHandler<Sessio
 
         when (operation) {
             is ConnectionInit -> sendOperation(session, ConnectionAck())
-            is Start -> subscriptions.subscribe(session, operation)
+            // TODO: technically, this should support queries and mutations as well
+            is Start -> {
+                val errors = subscriptions.subscribe(session, operation)
+                if (errors != null) {
+                    sendOperation(session, Data(operation.id, errors))
+                }
+            }
             is Stop -> {
                 subscriptions.unsubscribe(session, operation.id)
                 sendOperation(session, Complete(operation.id))

@@ -1,6 +1,6 @@
 package net.holak.graphql.ws
 
-import graphql.GraphQL
+import graphql.GraphQLError
 
 data class Subscription<out Client>(
         val client: Client,
@@ -15,7 +15,7 @@ interface SubscriptionHandler<Client> {
     val subscriptions: Map<String, Collection<Identifier<Client>>>
     val subscriptionsByClient: Map<Client, Map<String, Subscription<Client>>>
 
-    fun subscribe(client: Client, start: Start)
+    fun subscribe(client: Client, start: Start): List<GraphQLError>?
     fun unsubscribe(client: Client, subscriptionId: String)
     fun disconnected(client: Client)
 }
@@ -38,4 +38,19 @@ abstract class TypedPublisher : Publisher {
 class LatePublisher : Publisher {
     override fun publish(subscriptionName: String, data: Any?) = publisher.publish(subscriptionName, data)
     lateinit var publisher: Publisher
+}
+
+/** A hack to deal with the cyclical dependency. */
+class LateSubscriptions<Client> : SubscriptionHandler<Client> {
+    override val subscriptions: Map<String, Collection<SubscriptionHandler.Identifier<Client>>>
+        get() = handler.subscriptions
+
+    override val subscriptionsByClient
+        get() = handler.subscriptionsByClient
+
+    override fun subscribe(client: Client, start: Start) = handler.subscribe(client, start)
+    override fun unsubscribe(client: Client, subscriptionId: String) = handler.unsubscribe(client, subscriptionId)
+    override fun disconnected(client: Client) = handler.disconnected(client)
+
+    lateinit var handler: SubscriptionHandler<Client>
 }

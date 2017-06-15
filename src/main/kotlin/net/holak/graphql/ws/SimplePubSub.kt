@@ -1,9 +1,14 @@
 package net.holak.graphql.ws
 
+import graphql.ErrorType
 import graphql.GraphQL
+import graphql.GraphQLError
+import graphql.language.Document
 import graphql.language.Field
 import graphql.language.OperationDefinition
 import graphql.parser.Parser
+import graphql.schema.GraphQLSchema
+import graphql.validation.Validator
 import java.lang.IllegalArgumentException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -20,23 +25,33 @@ typealias Identifier<T> = SubscriptionHandler.Identifier<T>
  * which should probably be configurable.
  */
 @Suppress("unused")
-class SimpleSubscriptions<Client> : SubscriptionHandler<Client> {
+class SimpleSubscriptions<Client>(val schema: GraphQLSchema) : SubscriptionHandler<Client> {
 
     override val subscriptions = ConcurrentHashMap<String, ConcurrentLinkedQueue<Identifier<Client>>>()
     override val subscriptionsByClient = ConcurrentHashMap<Client, ConcurrentHashMap<String, Subscription<Client>>>()
 
-    override fun subscribe(client: Client, start: Start) {
-        // TODO: validation here, but first graphql-java must support it
+    override fun subscribe(client: Client, start: Start): List<GraphQLError>? {
+        val document = Parser().parseDocument(start.payload.query)
+        val errors = Validator().validateDocument(schema, document)
+        if (errors.isNotEmpty()) {
+            return errors
+        }
 
         val id = Identifier(client, start.id)
 
-        val toNotify = subscriptionToNotify(start.payload.query, start.payload.operationName)
-        subscriptions
-                .getOrPut(toNotify, { ConcurrentLinkedQueue() })
-                .add(id)
-        subscriptionsByClient
-                .getOrPut(client, { ConcurrentHashMap() })
-                .put(start.id, Subscription(client, start, toNotify, null))
+        try {
+            val toNotify = subscriptionToNotify(document, start.payload.operationName)
+            subscriptions
+                    .getOrPut(toNotify, { ConcurrentLinkedQueue() })
+                    .add(id)
+            subscriptionsByClient
+                    .getOrPut(client, { ConcurrentHashMap() })
+                    .put(start.id, Subscription(client, start, toNotify, null))
+
+            return null
+        }catch(e: IllegalArgumentException) {
+            return listOf(SubscriptionDocumentError(e.message!!))
+        }
     }
 
     override fun unsubscribe(client: Client, subscriptionId: String) {
@@ -77,8 +92,7 @@ class SimplePublisher<Client>(val graphQL: GraphQL, val sub: SubscriptionHandler
 }
 
 // TODO: a better way to obtain this information?
-fun subscriptionToNotify(request: String, operationName: String? = null): String {
-    val document = Parser().parseDocument(request)
+fun subscriptionToNotify(document: Document, operationName: String? = null): String {
     val definitions = document.definitions
     val definition = when {
         definitions.isEmpty() ->
@@ -103,4 +117,10 @@ fun subscriptionToNotify(request: String, operationName: String? = null): String
             .apply { if (size > 1) throw IllegalArgumentException("Subscriptions can only have a single root field") }
             .first()
             .name
+}
+
+class SubscriptionDocumentError(private val description: String) : GraphQLError {
+    override fun getMessage() = description
+    override fun getErrorType() = ErrorType.ValidationError
+    override fun getLocations() = null
 }

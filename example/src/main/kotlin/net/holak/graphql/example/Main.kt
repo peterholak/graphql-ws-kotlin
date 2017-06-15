@@ -2,28 +2,27 @@ package net.holak.graphql.example
 
 import com.coxautodev.graphql.tools.SchemaParser
 import graphql.GraphQL
-import net.holak.graphql.ws.LatePublisher
-import net.holak.graphql.ws.Publisher
-import net.holak.graphql.ws.SimplePublisher
-import net.holak.graphql.ws.SimpleSubscriptions
+import graphql.schema.GraphQLSchema
+import net.holak.graphql.ws.*
 import org.eclipse.jetty.websocket.api.Session
 
 fun main(args: Array<String>) {
     val latePublisher = LatePublisher()
-    val subscriptions = SimpleSubscriptions<Session>()
+    val lateSubscriptions = LateSubscriptions<Session>()
     val store = Store()
-    val graphQL = loadSchema(store, latePublisher)
-    val server = ExampleServer(subscriptions, graphQL, latePublisher)
+    val (graphQL, schema) = loadSchema(store, latePublisher)
+    val server = ExampleServer(lateSubscriptions, graphQL, latePublisher)
 
-    latePublisher.publisher = SimplePublisher(graphQL, subscriptions, server.transport())
+    lateSubscriptions.handler = SimpleSubscriptions(schema)
+    latePublisher.publisher = SimplePublisher(graphQL, lateSubscriptions.handler, server.transport())
 }
 
-fun loadSchema(store: Store, publisher: Publisher): GraphQL {
+fun loadSchema(store: Store, publisher: Publisher): Pair<GraphQL, GraphQLSchema> {
     val schema = SchemaParser.newParser()
             .file("graphql/example.graphql")
             .resolvers(QueryResolver(store), MutationResolver(store, publisher), SubscriptionResolver(store))
             .build()
             .makeExecutableSchema()
 
-    return GraphQL.newGraphQL(schema).build()!!
+    return Pair(GraphQL.newGraphQL(schema).build()!!, schema)
 }
