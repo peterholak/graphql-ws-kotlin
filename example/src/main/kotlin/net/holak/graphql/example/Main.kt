@@ -12,7 +12,7 @@ fun main(args: Array<String>) {
     val subscriptions = DefaultSubscriptions<Session>(schema)
     val server = ExampleServer(subscriptions, graphQL, latePublisher)
 
-    latePublisher.publisher = DefaultPublisher(graphQL, subscriptions, server.transport())
+    latePublisher.publisher = DefaultPublisher(graphQL, subscriptions, server.socketHandler.transport)
 }
 
 fun loadSchema(publisher: Publisher): Pair<GraphQL, GraphQLSchema> {

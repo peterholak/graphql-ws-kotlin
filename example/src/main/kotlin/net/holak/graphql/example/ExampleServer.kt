@@ -26,7 +26,6 @@ class ExampleServer(subscriptions: Subscriptions<Session>, val graphQL: GraphQL,
     val gson = Gson()
     val socketHandler: SubscriptionWebSocketHandler
     val indexHtml = ClassLoader.getSystemResourceAsStream("frontend/dist/index.html").reader().readText()
-    fun transport() = socketHandler.transport
 
     init {
         http.port(4567)
@@ -55,7 +54,7 @@ class ExampleServer(subscriptions: Subscriptions<Session>, val graphQL: GraphQL,
 
     private fun defaultToIndexHtml() {
         http.get("*") { req, res ->
-            // https//github.com/perwendel/spark/issues/502#issuecomment-219324858
+            // https://github.com/perwendel/spark/issues/502#issuecomment-219324858
             if (req.raw().pathInfo == "/subscriptions") return@get null
 
             res.type("text/html")
