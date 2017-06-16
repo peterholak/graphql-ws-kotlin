@@ -38,10 +38,10 @@ compile 'com.github.peterholak:graphql-ws-kotlin:-SNAPSHOT'
 - more robust exception handling (consistent/predictable behavior no matter where an exception occurs)
 - logging
 - performance improvements
-    - currently, it runs the subscription query for every subscriber even if it's the same
+    - currently, it runs the subscription query for every subscriber, even if the query is the same
     - support for batching notifications would be nice
 - thread safety
 - tests for more cases (especially write tests where the stubs currently are)
 - the setup is still a bit too complicated, untangle the cyclical dependencies (see `Main.kt` in the example project)
 - maybe support for writing clients (including Kotlin JS target)
-- all the other TODOs in the code
+- all the other TODOs in the code (other operations, keep-alive, etc.)
