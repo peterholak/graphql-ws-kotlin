@@ -20,19 +20,4 @@ interface Subscriptions<Client> {
     fun disconnected(client: Client)
 }
 
-/** A hack to deal with the cyclical dependency. */
-class LateSubscriptions<Client> : Subscriptions<Client> {
-    override val subscriptions: Map<String, Collection<Subscriptions.Identifier<Client>>>
-        get() = handler.subscriptions
-
-    override val subscriptionsByClient
-        get() = handler.subscriptionsByClient
-
-    override fun subscribe(client: Client, start: Start) = handler.subscribe(client, start)
-    override fun unsubscribe(client: Client, subscriptionId: String) = handler.unsubscribe(client, subscriptionId)
-    override fun disconnected(client: Client) = handler.disconnected(client)
-
-    lateinit var handler: Subscriptions<Client>
-}
-
 class NoSuchSubscriptionException(message: String) : Exception(message)

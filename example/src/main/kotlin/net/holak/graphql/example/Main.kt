@@ -8,16 +8,15 @@ import org.eclipse.jetty.websocket.api.Session
 
 fun main(args: Array<String>) {
     val latePublisher = LatePublisher()
-    val lateSubscriptions = LateSubscriptions<Session>()
-    val store = Store()
-    val (graphQL, schema) = loadSchema(store, latePublisher)
-    val server = ExampleServer(lateSubscriptions, graphQL, latePublisher)
+    val (graphQL, schema) = loadSchema(latePublisher)
+    val subscriptions = DefaultSubscriptions<Session>(schema)
+    val server = ExampleServer(subscriptions, graphQL, latePublisher)
 
-    lateSubscriptions.handler = DefaultSubscriptions(schema)
-    latePublisher.publisher = DefaultPublisher(graphQL, lateSubscriptions.handler, server.transport())
+    latePublisher.publisher = DefaultPublisher(graphQL, subscriptions, server.transport())
 }
 
-fun loadSchema(store: Store, publisher: Publisher): Pair<GraphQL, GraphQLSchema> {
+fun loadSchema(publisher: Publisher): Pair<GraphQL, GraphQLSchema> {
+    val store = Store()
     val schema = SchemaParser.newParser()
             .file("graphql/example.graphql")
             .resolvers(QueryResolver(store), MutationResolver(store, publisher), SubscriptionResolver(store))

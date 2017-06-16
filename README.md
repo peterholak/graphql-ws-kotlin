@@ -35,12 +35,13 @@ compile 'com.github.peterholak:graphql-ws-kotlin:-SNAPSHOT'
 
 ## What still needs to be done
 
-- more robust exception handling
+- more robust exception handling (consistent/predictable behavior no matter where an exception occurs)
 - logging
-- performance improvements (currently, it runs the subscription query for every subscriber even if it's the same)
+- performance improvements
+    - currently, it runs the subscription query for every subscriber even if it's the same
+    - support for batching notifications would be nice
 - thread safety
-- tests for more cases
-- the setup is still a bit too complicated, untangle the cyclical dependencies
+- tests for more cases (especially write tests where the stubs currently are)
+- the setup is still a bit too complicated, untangle the cyclical dependencies (see `Main.kt` in the example project)
 - maybe support for writing clients (including Kotlin JS target)
-- maybe split into 2 libraries, with separate WebSockets-specific parts (the code already works this way)
 - all the other TODOs in the code
