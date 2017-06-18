@@ -31,5 +31,3 @@ dependencies {
     testCompile "com.nhaarman:mockito-kotlin-kt1.1:1.5.0"
     testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.2'
 }
-
-//test.outputs.upToDateWhen { false }
