@@ -1,6 +1,5 @@
 package net.holak.graphql.ws.test
 
-import graphql.Assert.assertNotEmpty
 import graphql.GraphQLError
 import net.holak.graphql.ws.DefaultSubscriptions
 import net.holak.graphql.ws.Start
