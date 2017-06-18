@@ -1,62 +1,106 @@
 package net.holak.graphql.ws.test
 
 import com.nhaarman.mockito_kotlin.*
+import graphql.ExecutionResult
 import graphql.GraphQL
 import net.holak.graphql.ws.*
 import org.eclipse.jetty.websocket.api.Session
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.platform.runner.JUnitPlatform
 import org.junit.runner.RunWith
 
 @RunWith(JUnitPlatform::class)
 object DefaultPublisherSpec : Spek({
+
+    class TransportCall(val session: Session, val data: Data)
+    @Suppress("unused")
+    val subject = {
+        object {
+            val graphQL = mock<GraphQL>()
+            val subscriptions = mock<Subscriptions<Session>>()
+            val transportCalls = mutableListOf<TransportCall>()
+            val transport: Transport<Session> = { session, data -> transportCalls.add(TransportCall(session, data)) }
+            val publisher = DefaultPublisher(graphQL, subscriptions, transport)
+            init {
+                whenever(graphQL.execute(any(), anyOrNull(), anyOrNull(), anyOrNull())).thenReturn(MockGraphQLResult)
+            }
+        }
+    }
+
     describe("publish") {
 
-        val graphQL = mock<GraphQL>()
-        val subscriptions = mock<Subscriptions<Session>>()
-        val transport: Transport<Session> = { _, _ -> Unit }
-        val publisher = DefaultPublisher<Session>(graphQL, subscriptions, transport)
-
-        it("does nothing when no one is subscribed to the subscription name") {
-
-        }
-
-        it("runs the query with the data as context") {
+        it("does nothing when no one is subscribed to the subscription name") { with(subject()) {
             val client = mock<Session>()
             whenever(subscriptions.subscriptions)
-                    .thenReturn(mapOf(
-                            "hello" to listOf(
-                                    Identifier(client, "1")
-                            )
-                    ))
+                    .thenReturn(mapOf("somethingElse" to listOf(Identifier(client, "1"))))
+
+            publisher.publish("hello")
+
+            verifyZeroInteractions(graphQL)
+            assertEquals(0, transportCalls.size)
+        }}
+
+        it("runs the query with the data as context") { with(subject()) {
+            val client = mock<Session>()
+            whenever(subscriptions.subscriptions)
+                    .thenReturn(helloSubscriptionData(client, "1"))
             whenever(subscriptions.subscriptionsByClient)
-                    .thenReturn(mapOf(
-                            client to mapOf("1" to Subscription<Session>(
-                                    client = client,
-                                    start = Start("1", Start.Payload(
-                                            query = "subscription { hello { text } }",
-                                            operationName = "S",
-                                            variables = mapOf("arg" to 1)
-                                    )),
-                                    subscriptionName = "hello",
-                                    input = null
-                            ))
-                    ))
+                    .thenReturn(helloSubscriptionByClientData(client, "1"))
 
             publisher.publish("hello", "data")
             verify(graphQL).execute("subscription { hello { text } }", "S", "data", mapOf("arg" to 1))
-        }
+        }}
 
-        it("sends a GQL_DATA response") {
+        it("sends a GQL_DATA response") { with(subject()) {
+            val client = mock<Session>()
+            whenever(subscriptions.subscriptions)
+                    .thenReturn(helloSubscriptionData(client, "3"))
+            whenever(subscriptions.subscriptionsByClient)
+                    .thenReturn(helloSubscriptionByClientData(client, "3"))
 
-        }
+            publisher.publish("hello")
+            assertEquals(1, transportCalls.size)
+            assertSame(client, transportCalls[0].session)
+            assertEquals(Type.GQL_DATA, transportCalls[0].data.type)
+            assertEquals("3", transportCalls[0].data.id)
+        }}
     }
 
     describe("inline publish version") {
         it("infers the subscription name from the class name") {
-
+            data class HelloSubscription(val world: String)
+            val mockPublisher = mock<Publisher>()
+            mockPublisher.publish(HelloSubscription("world"))
+            verify(mockPublisher).publish("helloSubscription", HelloSubscription("world"))
         }
     }
 })
+
+fun helloSubscriptionData(client: Session, id: String) = mapOf(
+        "hello" to listOf(
+                Identifier(client, id)
+        )
+)
+
+fun helloSubscriptionByClientData(client: Session, id: String) = mapOf(
+        client to mapOf(id to Subscription(
+                client = client,
+                start = Start(id = id, payload = Start.Payload(
+                        query = "subscription { hello { text } }",
+                        operationName = "S",
+                        variables = mapOf("arg" to 1)
+                )),
+                subscriptionName = "hello",
+                input = null
+        ))
+)
+
+object MockGraphQLResult : ExecutionResult {
+    override fun getErrors() = null
+    override fun getExtensions() = null
+    override fun <T : Any?> getData(): T? = null
+}

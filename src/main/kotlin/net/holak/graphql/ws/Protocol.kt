@@ -190,7 +190,7 @@ class Data(
     constructor(id: String, result: ExecutionResult)
             : this(id, Payload(
                     result.getData(),
-                    if (result.errors.isEmpty()) null else result.errors,
+                    if (result.errors?.isEmpty() ?: true) null else result.errors,
                     result.extensions
             ))
 }

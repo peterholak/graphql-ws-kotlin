@@ -32,4 +32,4 @@ dependencies {
     testRuntime 'org.jetbrains.spek:spek-junit-platform-engine:1.1.2'
 }
 
-test.outputs.upToDateWhen { false }
+//test.outputs.upToDateWhen { false }
