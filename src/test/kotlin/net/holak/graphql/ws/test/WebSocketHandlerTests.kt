@@ -29,7 +29,7 @@ object SubscriptionWebSocketHandlerSpec : Spek({
     }
 
     describe("when a client subscribes with GQL_START") {
-        it("sends a GQL_DATA with an error if there are errors during subcribing") {
+        it("sends a GQL_DATA with an error if there are errors during subscribing") {
 
         }
     }

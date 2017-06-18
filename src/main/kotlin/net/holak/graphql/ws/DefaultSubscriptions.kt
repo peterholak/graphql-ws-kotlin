@@ -8,6 +8,7 @@ import graphql.language.OperationDefinition
 import graphql.parser.Parser
 import graphql.schema.GraphQLSchema
 import graphql.validation.Validator
+import org.antlr.v4.runtime.misc.ParseCancellationException
 import java.lang.IllegalArgumentException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -27,15 +28,15 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
     override val subscriptionsByClient = ConcurrentHashMap<Client, ConcurrentHashMap<String, Subscription<Client>>>()
 
     override fun subscribe(client: Client, start: Start): List<GraphQLError>? {
-        val document = Parser().parseDocument(start.payload.query)
-        val errors = Validator().validateDocument(schema, document)
-        if (errors.isNotEmpty()) {
-            return errors
-        }
-
-        val id = Identifier(client, start.id)
-
         try {
+            val document = Parser().parseDocument(start.payload.query)
+            val errors = Validator().validateDocument(schema, document)
+            if (errors.isNotEmpty()) {
+                return errors
+            }
+
+            val id = Identifier(client, start.id)
+
             val toNotify = subscriptionToNotify(document, start.payload.operationName)
             subscriptions
                     .getOrPut(toNotify, { ConcurrentLinkedQueue() })
@@ -45,8 +46,10 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
                     .put(start.id, Subscription(client, start, toNotify, null))
 
             return null
+        }catch(e: ParseCancellationException) {
+            return listOf(SubscriptionDocumentError(e.message ?: e.javaClass.simpleName))
         }catch(e: IllegalArgumentException) {
-            return listOf(SubscriptionDocumentError(e.message!!))
+            return listOf(SubscriptionDocumentError(e.message ?: e.javaClass.simpleName))
         }
     }
 
