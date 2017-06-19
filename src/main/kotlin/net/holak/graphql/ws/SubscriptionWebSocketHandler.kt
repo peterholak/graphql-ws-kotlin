@@ -3,6 +3,7 @@ package net.holak.graphql.ws
 import com.google.gson.GsonBuilder
 import mu.KLogging
 import org.eclipse.jetty.websocket.api.Session
+import org.eclipse.jetty.websocket.api.WebSocketException
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
@@ -56,7 +57,14 @@ class SubscriptionWebSocketHandler(val subscriptions: Subscriptions<Session>, va
     }
 
     fun sendOperation(session: Session, message: ServerToClientMessage<*>) {
-        session.remote.sendString(gson.toJson(message))
+        try {
+            session.remote.sendString(gson.toJson(message))
+        }catch(e: WebSocketException) {
+            // TODO: this exception doesn't necessarily mean that the client has disconnected
+            // (it does in the current Jetty implementation in getRemote() though).
+            logger.info { "Found out that a client is already disconnected while attempting to send a ${message.type} message." }
+            subscriptions.disconnected(session)
+        }
     }
 
     val transport: Transport<Session> = { session, data -> sendOperation(session, data) }
