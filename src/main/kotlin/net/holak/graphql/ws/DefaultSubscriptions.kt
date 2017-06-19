@@ -31,7 +31,7 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
 
     override fun subscribe(client: Client, start: Start): List<GraphQLError>? {
         try {
-            logger.debug { "Subscribe: $client id=${start.id} query=${start.payload.query}" }
+            logger.debug { "Subscribe: id=${start.id} query=${start.payload.query}" }
             val document = Parser().parseDocument(start.payload.query)
             val errors = Validator().validateDocument(schema, document)
             if (errors.isNotEmpty()) {

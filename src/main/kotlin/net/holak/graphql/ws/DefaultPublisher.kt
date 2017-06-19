@@ -23,7 +23,7 @@ class DefaultPublisher<Client>(val graphQL: GraphQL, val subscriptions: Subscrip
             try {
                 transport(it.client, Data(subscription.start.id, result))
             }catch(e: Exception) {
-                logger.error { "Failed to transport subscription ${subscription.start.id} of ${it.client}: $e" }
+                logger.error { "Failed to transport subscription ${subscription.start.id}: $e" }
             }
         }
     }
