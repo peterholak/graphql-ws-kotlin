@@ -50,13 +50,16 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
 
             return null
         }catch(e: ParseCancellationException) {
+            logger.error { "Error during subscription: $e" }
             return listOf(SubscriptionDocumentError(e.message ?: e.javaClass.simpleName))
         }catch(e: IllegalArgumentException) {
+            logger.error { "Error during subscription: $e" }
             return listOf(SubscriptionDocumentError(e.message ?: e.javaClass.simpleName))
         }
     }
 
     override fun unsubscribe(client: Client, subscriptionId: String) {
+        logger.debug { "Unsubscribe: id=$subscriptionId" }
         val id = Identifier(client, subscriptionId)
 
         val subscription = subscriptionsByClient[client]?.remove(subscriptionId) ?: throw NoSuchSubscriptionException("No such subscription.")
@@ -64,6 +67,7 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
     }
 
     override fun disconnected(client: Client) {
+        logger.debug { "Client with ${subscriptionsByClient[client]?.size ?: 0} subscriptions disconnected." }
         val ids = subscriptionsByClient.remove(client) ?: return
         ids.forEach { (subscriptionId, subscription) ->
             subscriptions[subscription.subscriptionName]?.remove(Identifier(client, subscriptionId))

@@ -1,6 +1,7 @@
 package net.holak.graphql.ws
 
 import com.google.gson.GsonBuilder
+import mu.KLogging
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
@@ -13,18 +14,19 @@ import java.util.concurrent.ConcurrentLinkedQueue
 @WebSocket
 class SubscriptionWebSocketHandler(val subscriptions: Subscriptions<Session>, val publisher: Publisher) {
     val sessions = ConcurrentLinkedQueue<Session>()
-
     val gson = GsonBuilder().registerTypeAdapter(OperationMessage::class.java, MessageDeserializer()).create()!!
+    companion object: KLogging()
 
     @OnWebSocketClose
     fun onWebSocketClose(session: Session, statusCode: Int, reason: String) {
-        println("Disconnected: " + reason)
+        logger.info { "Closed connection with client: statusCode=$statusCode reason=$reason." }
         subscriptions.disconnected(session)
         sessions.remove(session)
     }
 
     @OnWebSocketConnect
     fun onWebSocketConnect(session: Session) {
+        logger.info { "Client connected. "}
         sessions.add(session)
     }
 
