@@ -1,10 +1,13 @@
 package net.holak.graphql.ws
 
 import graphql.GraphQL
+import mu.KLogging
 
 typealias Transport<Client> = (Client, Data) -> Unit
 
 class DefaultPublisher<Client>(val graphQL: GraphQL, val subscriptions: Subscriptions<Client>, val transport: Transport<Client>) : Publisher {
+    companion object: KLogging()
+
     override fun publish(subscriptionName: String, data: Any?) {
         subscriptions.subscriptions[subscriptionName]?.forEach {
             val subscription = subscriptions.subscriptionsByClient[it.client]!![it.subscriptionId]!!
@@ -20,7 +23,7 @@ class DefaultPublisher<Client>(val graphQL: GraphQL, val subscriptions: Subscrip
             try {
                 transport(it.client, Data(subscription.start.id, result))
             }catch(e: Exception) {
-                // TODO: log transport errors, but it's no reason to not keep going
+                logger.error { "Failed to transport subscription ${subscription.start.id} of ${it.client}: $e" }
             }
         }
     }

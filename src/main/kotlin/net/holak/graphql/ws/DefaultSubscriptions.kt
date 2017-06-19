@@ -8,6 +8,7 @@ import graphql.language.OperationDefinition
 import graphql.parser.Parser
 import graphql.schema.GraphQLSchema
 import graphql.validation.Validator
+import mu.KLogging
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import java.lang.IllegalArgumentException
 import java.util.concurrent.ConcurrentHashMap
@@ -23,12 +24,14 @@ typealias Identifier<T> = Subscriptions.Identifier<T>
  */
 @Suppress("unused")
 class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Client> {
+    companion object: KLogging()
 
     override val subscriptions = ConcurrentHashMap<String, ConcurrentLinkedQueue<Identifier<Client>>>()
     override val subscriptionsByClient = ConcurrentHashMap<Client, ConcurrentHashMap<String, Subscription<Client>>>()
 
     override fun subscribe(client: Client, start: Start): List<GraphQLError>? {
         try {
+            logger.debug { "Subscribe: $client id=${start.id} query=${start.payload.query}" }
             val document = Parser().parseDocument(start.payload.query)
             val errors = Validator().validateDocument(schema, document)
             if (errors.isNotEmpty()) {

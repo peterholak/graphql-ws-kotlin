@@ -36,7 +36,7 @@ compile 'com.github.peterholak:graphql-ws-kotlin:-SNAPSHOT'
 ## What still needs to be done
 
 - more robust exception handling (consistent/predictable behavior no matter where an exception occurs)
-- logging
+- more logging
 - performance improvements
     - currently, it runs the subscription query for every subscriber, even if the query is the same
     - support for batching notifications would be nice
