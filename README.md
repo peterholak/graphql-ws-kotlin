@@ -45,3 +45,5 @@ compile 'com.github.peterholak:graphql-ws-kotlin:-SNAPSHOT'
 - the setup is still a bit too complicated, untangle the cyclical dependencies (see `Main.kt` in the example project)
 - maybe support for writing clients (including Kotlin JS target)
 - all the other TODOs in the code (other operations, keep-alive, etc.)
+- javadoc for most of the classes
+- figure out the correct gradle project setup for `example`, so it can stay in the same git repo

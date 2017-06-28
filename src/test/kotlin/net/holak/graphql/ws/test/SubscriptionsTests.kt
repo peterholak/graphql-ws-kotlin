@@ -1,10 +1,8 @@
 package net.holak.graphql.ws.test
 
 import graphql.GraphQLError
-import net.holak.graphql.ws.DefaultSubscriptions
-import net.holak.graphql.ws.Identifier
-import net.holak.graphql.ws.Start
-import net.holak.graphql.ws.Subscription
+import graphql.parser.Parser
+import net.holak.graphql.ws.*
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -21,6 +19,18 @@ object DefaultSubscriptionsSpec : Spek({
         object {
             val subscriptions = DefaultSubscriptions<String>(schema)
         }
+    }
+
+    describe("subscriptionToNotify") {
+
+        it("uses the only exisitng operation when operation name is omitted") {
+            val result = subscriptionToNotify(
+                    document = Parser().parseDocument("subscription S { helloChanged }"),
+                    operationName = null
+            )
+            assertEquals("helloChanged", result)
+        }
+
     }
 
     describe("subscribe") {

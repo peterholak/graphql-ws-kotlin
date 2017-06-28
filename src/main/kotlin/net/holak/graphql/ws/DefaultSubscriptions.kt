@@ -85,7 +85,7 @@ fun subscriptionToNotify(document: Document, operationName: String? = null): Str
         definitions.size > 1 && operationName == null ->
             throw IllegalArgumentException("Must specify operation name.")
 
-        definitions.size == 0 && operationName == null ->
+        definitions.size == 1 && operationName == null ->
             definitions[0]
 
         else ->
