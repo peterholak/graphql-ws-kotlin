@@ -23,9 +23,10 @@ repositories {
 }
 
 dependencies {
-    compile project(':graphql-ws-kotlin')
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "com.sparkjava:spark-kotlin:1.0.0-alpha"
     compile 'com.github.peterholak:graphql-java-tools:subscription-support-SNAPSHOT'
+    compile project(':graphql-ws-kotlin')
     runtime 'ch.qos.logback:logback-classic:1.2.3'
 }
 
