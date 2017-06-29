@@ -35,7 +35,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    from sourceSets.main.java.srcDirs
+    from sourceSets.main.allSource
     classifier = 'sources'
 }
 
