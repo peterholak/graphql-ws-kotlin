@@ -11,7 +11,7 @@ you can use as a client (see the frontend in `example/src/main/resources/fronten
 
 ### Run the example
 
-- Run the `example` project (from the IDE, or by running `./gradlew :example:run`),
+- Run the `example` project (from the IDE, or by running `./gradlew run` in the example directory),
 then open your browser at http://localhost:4567/
 
 - You can see a live demo at http://graphql.holak.net/
@@ -46,4 +46,3 @@ compile 'com.github.peterholak:graphql-ws-kotlin:-SNAPSHOT'
 - maybe support for writing clients (including Kotlin JS target)
 - all the other TODOs in the code (other operations, keep-alive, etc.)
 - javadoc for most of the classes
-- figure out the correct gradle project setup for `example`, so it can stay in the same git repo

@@ -1,3 +1,5 @@
 build/
 .idea/
 .gradle/
+**/hs_err_*.log
+**/replay_*.log

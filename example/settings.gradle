@@ -1,0 +1,2 @@
+include ':graphql-ws-kotlin'
+project(":graphql-ws-kotlin").projectDir = file("..")

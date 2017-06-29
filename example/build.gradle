@@ -2,7 +2,7 @@ group 'net.holak'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.1.2-5'
+    ext.kotlin_version = '1.1.3'
 
     repositories {
         mavenCentral()
@@ -23,9 +23,10 @@ repositories {
 }
 
 dependencies {
-    compile rootProject
+    compile project(':graphql-ws-kotlin')
     compile "com.sparkjava:spark-kotlin:1.0.0-alpha"
     compile 'com.github.peterholak:graphql-java-tools:subscription-support-SNAPSHOT'
+    runtime 'ch.qos.logback:logback-classic:1.2.3'
 }
 
 sourceSets.main.resources.exclude("**/node_modules/")
