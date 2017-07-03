@@ -28,6 +28,7 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
 
     override val subscriptions = ConcurrentHashMap<String, ConcurrentLinkedQueue<Identifier<Client>>>()
     override val subscriptionsByClient = ConcurrentHashMap<Client, ConcurrentHashMap<String, Subscription<Client>>>()
+    val listeners = mutableMapOf<String, MutableList<(start: Start) -> Unit>>()
 
     override fun subscribe(client: Client, start: Start): List<GraphQLError>? {
         try {
@@ -47,6 +48,8 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
             subscriptionsByClient
                     .getOrPut(client, { ConcurrentHashMap() })
                     .put(start.id, Subscription(client, start, toNotify, null))
+
+            listeners[toNotify]?.forEach { it(start) }
 
             return null
         }catch(e: ParseCancellationException) {
@@ -72,6 +75,12 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
         ids.forEach { (subscriptionId, subscription) ->
             subscriptions[subscription.subscriptionName]?.remove(Identifier(client, subscriptionId))
         }
+    }
+
+    fun onSubscribed(name: String, function: (start: Start) -> Unit) {
+        listeners
+                .getOrPut(name, { mutableListOf() })
+                .add(function)
     }
 }
 

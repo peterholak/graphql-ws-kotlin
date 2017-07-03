@@ -74,6 +74,16 @@ object DefaultSubscriptionsSpec : Spek({
             assertErrorsReturned(result)
         }}
 
+        it("notifies any registered listeners") { with(subject()) {
+            var id = ""
+            subscriptions.onSubscribed("helloChanged") { start ->
+                id = start.id
+            }
+            assertEquals("", id)
+            subscriptions.subscribe("Anne", Start("1", "subscription { helloChanged }"))
+            assertEquals("1", id)
+        }}
+
         it("saves the subscription by subscription name and by client") { with(subject()) {
             val start = Start(id = "1", payload = Start.Payload(
                     query = "subscription S { helloChanged }",
