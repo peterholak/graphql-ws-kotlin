@@ -26,6 +26,7 @@ class MutationResolver(val store: Store, val publisher: Publisher) : GraphQLMuta
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 class SubscriptionResolver(val store: Store) : GraphQLSubscriptionResolver {
     fun messageChanged(): Message {
         return store.currentMessage
@@ -34,4 +35,33 @@ class SubscriptionResolver(val store: Store) : GraphQLSubscriptionResolver {
     fun unrelatedMessage(env: DataFetchingEnvironment): Message {
         return Message(env.getContext<String>())
     }
+
+    fun multiplyUnrelatedMessage(by: Int, env: DataFetchingEnvironment): Int {
+        val message = env.getContext<String>().toIntOrNull() ?: return 0
+        return message * by
+    }
+
+    fun filteredUnrelatedMessage(lessThan: Int, env: DataFetchingEnvironment): Message {
+        return Message(env.getContext<String>())
+    }
+
+    fun weirdInput(input: VariousTypes): Boolean {
+        return false
+    }
+}
+
+data class VariousTypes(
+        val id: String,
+        val star: Star,
+        val listOfStrings: List<String>,
+        val number: Int
+)
+
+enum class Star {
+    Wars,
+    Trek,
+    Gate,
+    Craft,
+    Control,
+    Citizen
 }

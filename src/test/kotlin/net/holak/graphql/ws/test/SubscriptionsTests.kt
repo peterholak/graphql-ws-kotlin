@@ -1,5 +1,6 @@
 package net.holak.graphql.ws.test
 
+import com.google.gson.Gson
 import graphql.GraphQLError
 import graphql.parser.Parser
 import net.holak.graphql.ws.*
@@ -23,12 +24,35 @@ object DefaultSubscriptionsSpec : Spek({
 
     describe("subscriptionToNotify") {
 
-        it("uses the only exisitng operation when operation name is omitted") {
+        it("uses the only existing operation when operation name is omitted") {
             val result = subscriptionToNotify(
                     document = Parser().parseDocument("subscription S { helloChanged }"),
-                    operationName = null
+                    operationName = null,
+                    schema = schema
             )
-            assertEquals("helloChanged", result)
+            assertEquals("helloChanged", result.name)
+        }
+
+        it("uses the correct name even when using an alias") {
+            val result = subscriptionToNotify(Parser().parseDocument("subscription S { hc: helloChanged }"), schema)
+            assertEquals("helloChanged", result.name)
+        }
+
+        it("returns all the raw arguments with the correct type") {
+            val result = subscriptionToNotify(Parser().parseDocument("subscription S { withArguments(a: 8) }"), schema)
+            assertEquals("withArguments", result.name)
+            assertEquals(mapOf("a" to 8, "b" to null), result.arguments)
+        }
+
+        it("returns arguments passed via variables with the correct type") {
+            @Suppress("UNCHECKED_CAST")
+            val variables = Gson().fromJson("""{"a": "5"}""", Map::class.java) as Map<String, Any?>
+            val result = subscriptionToNotify(
+                    Parser().parseDocument("subscription S(\$a: Int!) { withArguments(a: \$a) }"),
+                    schema,
+                    variables = variables
+            )
+            assertEquals(mapOf("a" to 5, "b" to null), result.arguments)
         }
 
     }
@@ -103,8 +127,7 @@ object DefaultSubscriptionsSpec : Spek({
             val expectedSubscription = Subscription(
                     client = "Anne",
                     start = start,
-                    subscriptionName = "helloChanged",
-                    input = null
+                    subscriptionName = "helloChanged"
             )
             assertEquals(expectedSubscription, subscription)
         }}
@@ -150,7 +173,7 @@ object DefaultSubscriptionsSpec : Spek({
 
 })
 
-fun assertErrorsReturned(result: List<GraphQLError>?) {
+fun assertErrorsReturned(result: List<*>?) {
     assertNotNull(result)
     assertTrue("at least one error must be returned", result!!.isNotEmpty())
     result.forEach {

@@ -44,6 +44,11 @@ class ExampleServer(subscriptions: Subscriptions<Session>, val graphQL: GraphQL,
         http.post("/notify-unrelated") { req, _ ->
             val value = gson.fromJson(req.body(), LinkedTreeMap::class.java)["value"].toString()
             publisher.publish("unrelatedMessage", value)
+            publisher.publish("multiplyUnrelatedMessage", value)
+            publisher.publish("filteredUnrelatedMessage", value) {
+                (value.toIntOrNull() ?: 0) < (it["lessThan"] as? Int ?: 0)
+            }
+            publisher.publish("weirdInput")
         }
 
         addGraphQLPostHandlers()

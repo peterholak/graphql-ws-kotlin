@@ -2,6 +2,7 @@ package net.holak.graphql.ws
 
 import graphql.ErrorType
 import graphql.GraphQLError
+import graphql.execution.ValuesResolver
 import graphql.language.Document
 import graphql.language.Field
 import graphql.language.OperationDefinition
@@ -41,21 +42,24 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
 
             val id = Identifier(client, start.id)
 
-            val toNotify = subscriptionToNotify(document, start.payload.operationName)
+            val toNotify = subscriptionToNotify(document, schema, start.payload.operationName, start.payload.variables)
             subscriptions
-                    .getOrPut(toNotify, { ConcurrentLinkedQueue() })
+                    .getOrPut(toNotify.name, { ConcurrentLinkedQueue() })
                     .add(id)
             subscriptionsByClient
                     .getOrPut(client, { ConcurrentHashMap() })
-                    .put(start.id, Subscription(client, start, toNotify, null))
+                    .put(start.id, Subscription(client, start, toNotify.name, toNotify.arguments))
 
-            listeners[toNotify]?.forEach { it(start) }
+            listeners[toNotify.name]?.forEach { it(start) }
 
             return null
         }catch(e: ParseCancellationException) {
             logger.error { "Error during subscription: $e" }
             return listOf(SubscriptionDocumentError(e.message ?: e.javaClass.simpleName))
         }catch(e: IllegalArgumentException) {
+            logger.error { "Error during subscription: $e" }
+            return listOf(SubscriptionDocumentError(e.message ?: e.javaClass.simpleName))
+        }catch(e: NotImplementedError) {
             logger.error { "Error during subscription: $e" }
             return listOf(SubscriptionDocumentError(e.message ?: e.javaClass.simpleName))
         }
@@ -82,10 +86,12 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
                 .getOrPut(name, { mutableListOf() })
                 .add(function)
     }
+
+    class ToNotify(val name: String, val arguments: JsonObject)
 }
 
 // TODO: a better way to obtain this information?
-fun subscriptionToNotify(document: Document, operationName: String? = null): String {
+fun subscriptionToNotify(document: Document, schema: GraphQLSchema, operationName: String? = null, variables: JsonObject? = null): DefaultSubscriptions.ToNotify {
     val definitions = document.definitions
     val definition = when {
         definitions.isEmpty() ->
@@ -105,11 +111,24 @@ fun subscriptionToNotify(document: Document, operationName: String? = null): Str
     if (definition.operation != OperationDefinition.Operation.SUBSCRIPTION)
         throw IllegalArgumentException("The operation is not a subscription.")
 
-    return definition.selectionSet.selections
+    val subscription = definition.selectionSet.selections
             .filterIsInstance<Field>()
             .apply { if (size > 1) throw IllegalArgumentException("Subscriptions can only have a single root field") }
             .first()
-            .name
+
+
+    val subscriptionSchema = schema.subscriptionType.fieldDefinitions.find { it.name == subscription.name }
+            ?: throw IllegalArgumentException("Subscription ${subscription.name} not found in schema.")
+
+    val resolver = ValuesResolver()
+    val variableValues: JsonObject = resolver.getVariableValues(schema, definition.variableDefinitions, variables)
+    val values: JsonObject = resolver.getArgumentValues(
+            subscriptionSchema.arguments,
+            subscription.arguments,
+            variableValues
+    )
+
+    return DefaultSubscriptions.ToNotify(subscription.name, values)
 }
 
 class SubscriptionDocumentError(private val description: String) : GraphQLError {

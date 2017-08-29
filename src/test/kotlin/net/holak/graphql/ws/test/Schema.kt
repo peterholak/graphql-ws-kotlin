@@ -22,6 +22,8 @@ val schemaDefinition = """
 
     type Subscription {
         helloChanged: String!
+        withArguments(a: Int!, b: String): Int!
+        withDefaultArguments(a: Int = 5, b: String = "x"): String!
     }
 """
 
@@ -45,4 +47,6 @@ class Mutation : GraphQLMutationResolver {
 
 class SubscriptionResolver : GraphQLSubscriptionResolver {
     val helloChanged = "Subscription"
+    fun withArguments(a: Int, b: String?) = a
+    fun withDefaultArguments(a: Int, b: String) = arrayOf(a, b).toString()
 }

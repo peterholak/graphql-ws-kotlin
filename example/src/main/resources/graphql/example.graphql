@@ -9,9 +9,28 @@ type Mutation {
 type Subscription {
     messageChanged: Message!
     unrelatedMessage: Message!
+    multiplyUnrelatedMessage(by: Int!): Int!
+    filteredUnrelatedMessage(lessThan: Int!): Message!
+    weirdInput(input: VariousTypes!): Boolean!
 }
 
 type Message {
     text: String!
     randomNumber: Int!
+}
+
+input VariousTypes {
+    id: ID!
+    star: Star!
+    listOfStrings: [String!]!
+    number: Int!
+}
+
+enum Star {
+    Wars,
+    Trek,
+    Gate,
+    Craft,
+    Control,
+    Citizen
 }

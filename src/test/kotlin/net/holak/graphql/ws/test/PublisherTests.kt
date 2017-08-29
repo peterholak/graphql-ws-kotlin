@@ -28,6 +28,14 @@ object DefaultPublisherSpec : Spek({
             init {
                 whenever(graphQL.execute(any(), anyOrNull(), anyOrNull(), anyOrNull())).thenReturn(MockGraphQLResult)
             }
+            fun subscribeTheOnlyClient(id: String = "1"): Session {
+                val client = mock<Session>()
+                whenever(subscriptions.subscriptions)
+                        .thenReturn(helloSubscriptionData(client, id))
+                whenever(subscriptions.subscriptionsByClient)
+                        .thenReturn(helloSubscriptionByClientData(client, id))
+                return client
+            }
         }
     }
 
@@ -45,28 +53,33 @@ object DefaultPublisherSpec : Spek({
         }}
 
         it("runs the query with the data as context") { with(subject()) {
-            val client = mock<Session>()
-            whenever(subscriptions.subscriptions)
-                    .thenReturn(helloSubscriptionData(client, "1"))
-            whenever(subscriptions.subscriptionsByClient)
-                    .thenReturn(helloSubscriptionByClientData(client, "1"))
+            subscribeTheOnlyClient()
 
             publisher.publish("hello", "data")
             verify(graphQL).execute("subscription { hello { text } }", "S", "data", mapOf("arg" to 1))
         }}
 
         it("sends a GQL_DATA response") { with(subject()) {
-            val client = mock<Session>()
-            whenever(subscriptions.subscriptions)
-                    .thenReturn(helloSubscriptionData(client, "3"))
-            whenever(subscriptions.subscriptionsByClient)
-                    .thenReturn(helloSubscriptionByClientData(client, "3"))
+            val client = subscribeTheOnlyClient("3")
 
             publisher.publish("hello")
             assertEquals(1, transportCalls.size)
             assertSame(client, transportCalls[0].session)
             assertEquals(Type.GQL_DATA, transportCalls[0].data.type)
             assertEquals("3", transportCalls[0].data.id)
+        }}
+
+        it("applies the filter") { with(subject()) {
+            subscribeTheOnlyClient()
+
+            publisher.publish("hello") {
+                false
+            }
+            assertEquals(0, transportCalls.size)
+            publisher.publish("hello") {
+                true
+            }
+            assertEquals(1, transportCalls.size)
         }}
     }
 
@@ -94,8 +107,7 @@ fun helloSubscriptionByClientData(client: Session, id: String) = mapOf(
                         operationName = "S",
                         variables = mapOf("arg" to 1)
                 )),
-                subscriptionName = "hello",
-                input = null
+                subscriptionName = "hello"
         ))
 )
 

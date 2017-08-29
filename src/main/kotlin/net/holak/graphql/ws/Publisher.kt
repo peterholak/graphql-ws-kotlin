@@ -1,7 +1,9 @@
 package net.holak.graphql.ws
 
+typealias Filter = (args: JsonObject) -> Boolean
+
 interface Publisher {
-    fun publish(subscriptionName: String, data: Any? = null)
+    fun publish(subscriptionName: String, data: Any? = null, filter: Filter? = null)
 }
 
 /**
@@ -17,6 +19,6 @@ inline fun <reified T> Publisher.publish(context: T?) {
 
 /** A hack to deal with the cyclical dependency. */
 class LatePublisher : Publisher {
-    override fun publish(subscriptionName: String, data: Any?) = publisher.publish(subscriptionName, data)
+    override fun publish(subscriptionName: String, data: Any?, filter: Filter?) = publisher.publish(subscriptionName, data, filter)
     lateinit var publisher: Publisher
 }
