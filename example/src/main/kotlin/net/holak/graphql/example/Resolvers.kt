@@ -32,20 +32,20 @@ class SubscriptionResolver(val store: Store) : GraphQLSubscriptionResolver {
         return store.currentMessage
     }
 
-    fun unrelatedMessage(env: DataFetchingEnvironment): Message {
-        return Message(env.getContext<String>())
+    fun textPublished(env: DataFetchingEnvironment): String {
+        return env.getContext<String>()
     }
 
-    fun multiplyUnrelatedMessage(by: Int, env: DataFetchingEnvironment): Int {
+    fun multiplyPublishedText(by: Int, env: DataFetchingEnvironment): Int {
         val message = env.getContext<String>().toIntOrNull() ?: return 0
         return message * by
     }
 
-    fun filteredUnrelatedMessage(lessThan: Int, env: DataFetchingEnvironment): Message {
-        return Message(env.getContext<String>())
+    fun filteredPublishedText(lessThan: Int, env: DataFetchingEnvironment): Int {
+        return env.getContext<String>().toInt()
     }
 
-    fun weirdInput(input: VariousTypes): Boolean {
+    fun complexInput(input: VariousTypes): Boolean {
         return false
     }
 }

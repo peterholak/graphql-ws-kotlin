@@ -1,21 +1,46 @@
 type Query {
+    # Returns the current global message. The message can be changed via the `setMessage` mutation.
+    # Changes can be subscribed to with the `messageChanged` subscription.
     currentMessage: Message!
 }
 
 type Mutation {
+    # Sets the current global message. This is the same message that `currentMessage` returns.
+    # This will notify subscribers to the `messageChanged` subscription.
     setMessage(text: String!): Message!
 }
 
 type Subscription {
+    # Triggered when the current global message is changed via the `setMessage` mutation.
+    # You can try this out by having two separate browser tabs open.
     messageChanged: Message!
-    unrelatedMessage: Message!
-    multiplyUnrelatedMessage(by: Int!): Int!
-    filteredUnrelatedMessage(lessThan: Int!): Message!
-    weirdInput(input: VariousTypes!): Boolean!
+
+    # Triggered when some text was published using the "Publish text" button at the top of this page.
+    textPublished: String!
+
+    # If the text that was published using the "Publish text" button is a number, this subscription
+    # will be triggered with the published number multiplied by the `by` argument.
+    #
+    # If the text is not a number, will return 0.
+    multiplyPublishedText(by: Int!): Int!
+
+    # Will be triggered when the text published using the "Publish text" button is a number that is
+    # smaller than the `lessThan` argument.
+    filteredPublishedText(lessThan: Int!): Int!
+
+    # Will be triggered every time some text is published using the "Publish text" button.
+    # This subscription only exists to showcase how the different GraphQL types are mapped
+    # to the appropriate Kotlin types in the filter function on `publish`.
+    #
+    # Always returns false.
+    complexInput(data: VariousTypes!): Boolean!
 }
 
 type Message {
+    # The contents of the message.
     text: String!
+
+    # Just a random number generated on every query, regardless of the text of the message.
     randomNumber: Int!
 }
 

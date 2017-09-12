@@ -19,7 +19,8 @@ const config = {
     },
     module: {
         rules: [
-            {test: /\.tsx?$/, use: 'awesome-typescript-loader', exclude: /node_modules/}
+            {test: /\.tsx?$/, use: 'awesome-typescript-loader', exclude: /node_modules/},
+            {test: /\.txt$/, use: 'raw-loader', exclude: /node_modules/}
         ]
     },
     devtool: 'sourcemap',

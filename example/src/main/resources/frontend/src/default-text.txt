@@ -1,0 +1,6 @@
+subscription {
+  # Try pressing Ctrl+Space inside this block.
+  # You can only subscribe to a single subscription in one go.
+}
+
+# There are some queries and mutations in the schema as well...

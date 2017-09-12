@@ -41,14 +41,14 @@ class ExampleServer(subscriptions: Subscriptions<Session>, val graphQL: GraphQL,
             corsAllowEveryone(res)
         }
 
-        http.post("/notify-unrelated") { req, _ ->
+        http.post("/publish-text") { req, _ ->
             val value = gson.fromJson(req.body(), LinkedTreeMap::class.java)["value"].toString()
-            publisher.publish("unrelatedMessage", value)
-            publisher.publish("multiplyUnrelatedMessage", value)
-            publisher.publish("filteredUnrelatedMessage", value) {
-                (value.toIntOrNull() ?: 0) < (it["lessThan"] as? Int ?: 0)
+            publisher.publish("textPublished", value)
+            publisher.publish("multiplyPublishedText", value)
+            publisher.publish("filteredPublishedText", value) {
+                (value.toIntOrNull() ?: return@publish false) < (it["lessThan"] as Int)
             }
-            publisher.publish("weirdInput")
+            publisher.publish("complexInput")
         }
 
         addGraphQLPostHandlers()
