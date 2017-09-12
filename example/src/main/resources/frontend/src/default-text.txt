@@ -4,3 +4,4 @@ subscription {
 }
 
 # There are some queries and mutations in the schema as well...
+# Explore the schema in the Docs sidebar on the right side of the page.

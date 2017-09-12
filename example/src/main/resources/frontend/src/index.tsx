@@ -25,10 +25,13 @@ function postFetcher(payload: any) {
 type ConnectionStatus = 'connected'|'connecting'|'disconnected'|'reconnected'|'reconnecting'
 interface SubscriptionData { payload: { id: string, data?: any, errors?: any }, reactKey: number }
 interface State { events: SubscriptionData[], status: ConnectionStatus }
+
 class App extends React.Component<{}, State> {
+
     state: State = { events: [], status: 'disconnected' }
     fetcher = graphQLFetcher(subscriptionClient, postFetcher, this.onSubscriptionData.bind(this))
     publishTextElement: HTMLInputElement
+    logBottomElement: HTMLSpanElement
     keyCounter = 0
 
     componentDidMount() {
@@ -39,13 +42,22 @@ class App extends React.Component<{}, State> {
         subscriptionClient.onReconnected(() => this.setState({ status: 'reconnected' }))
     }
 
+    componentDidUpdate(prevProps: {}, prevState: State) {
+        if (this.state.events !== prevState.events) {
+            this.logBottomElement.scrollIntoView()
+        }
+    }
+
     render() {
         return <div style={{width: '100%', height: '100%'}}>
             <div style={{height: '30%', display: 'flex'}}>
                 <div style={{flexGrow: 0.25, overflow: 'auto'}}>
                     <h1 style={headingStyle}>graphql-ws-kotlin example</h1>
                     <div style={hintStyle}>Try subscribing to `textPublished` in the graphiql editor below!</div>
-                    <div style={hintStyle}>Try opening this page in multiple tabs, or even on different devices!</div>
+                    <div style={hintStyle}>
+                        Try opening this page in multiple tabs, or even on different devices!<br />
+                        You may also see messages published by other people.
+                    </div>
                     <div style={{marginBottom: '10px'}}>
                         <button style={publishButtonStyle} onClick={this.publishText.bind(this)}>Publish text</button>
                         <input defaultValue={"10"} ref={e => this.publishTextElement = e} />
@@ -59,6 +71,7 @@ class App extends React.Component<{}, State> {
                 <div style={{flexGrow: 0.75, height: '100%', overflow: 'auto', background: '#eee'}}>
                     <h1 style={headingStyle}>Notification log</h1>
                     {this.state.events.map(e => <div key={e.reactKey}>{JSON.stringify(e.payload)}</div>)}
+                    <span ref={e => this.logBottomElement = e} />
                 </div>
             </div>
             <div style={{height: '70%'}}>

@@ -42,7 +42,7 @@ export const graphQLFetcher = (subscriptionsClient: SubscriptionClient, fallback
                 }
             });
             
-            return Promise.resolve("Subscription id is " + id + ". Data received via subscriptions will appear in the area above")
+            return Promise.resolve("Subscription id is " + id + ". Data received via subscriptions will appear in the notification log above.")
         } else {
             return fallbackFetcher(graphQLParams);
         }
