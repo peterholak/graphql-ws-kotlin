@@ -2,6 +2,10 @@
 
 **Unfinished / work in progress, but should be somewhat usable! Feedback welcome.**
 
+Example demo: http://graphql.holak.net/
+
+---
+
 This library makes it easy to write GraphQL servers that support subscriptions via WebSockets.
 It uses [graphql-java](https://github.com/graphql-java/graphql-java) to execute GraphQL queries.
 
