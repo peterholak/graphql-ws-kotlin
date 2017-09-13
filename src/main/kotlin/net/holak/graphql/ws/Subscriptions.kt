@@ -6,7 +6,7 @@ data class Subscription<out Client>(
         val client: Client,
         val start: Start,
         val subscriptionName: String,
-        val arguments: JsonObject = emptyMap()
+        val arguments: JsonMap = emptyMap()
 )
 
 interface Subscriptions<Client> {

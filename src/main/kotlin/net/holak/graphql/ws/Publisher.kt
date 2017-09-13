@@ -1,6 +1,6 @@
 package net.holak.graphql.ws
 
-typealias Filter = (args: JsonObject) -> Boolean
+typealias Filter = (args: JsonMap) -> Boolean
 
 interface Publisher {
     fun publish(subscriptionName: String, data: Any? = null, filter: Filter? = null)

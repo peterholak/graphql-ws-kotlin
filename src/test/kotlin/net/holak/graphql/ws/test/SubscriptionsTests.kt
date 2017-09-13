@@ -46,7 +46,7 @@ object DefaultSubscriptionsSpec : Spek({
 
         it("returns arguments passed via variables with the correct type") {
             @Suppress("UNCHECKED_CAST")
-            val variables = Gson().fromJson("""{"a": "5"}""", Map::class.java) as Map<String, Any?>
+            val variables = Gson().fromJson("""{"a": "5"}""", Map::class.java) as JsonMap
             val result = subscriptionToNotify(
                     Parser().parseDocument("subscription S(\$a: Int!) { withArguments(a: \$a) }"),
                     schema,

@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import graphql.ExecutionInput
 import graphql.GraphQL
+import net.holak.graphql.ws.JsonMap
 import net.holak.graphql.ws.Publisher
 import net.holak.graphql.ws.SubscriptionWebSocketHandler
 import net.holak.graphql.ws.Subscriptions
@@ -66,7 +67,7 @@ class ExampleServer(subscriptions: Subscriptions<Session>, val graphQL: GraphQL,
                 val body = gson.fromJson(req.body(), LinkedTreeMap::class.java)
 
                 @Suppress("UNCHECKED_CAST")
-                val variables = body["variables"] as Map<String, Any?>? ?: emptyMap()
+                val variables = body["variables"] as JsonMap? ?: emptyMap()
 
                 val result = graphQL.execute(ExecutionInput(
                         body["query"] as String,

@@ -5,7 +5,7 @@ package net.holak.graphql.ws
 import graphql.ExecutionResult
 import graphql.GraphQLError
 
-typealias JsonObject = Map<String, Any?>
+typealias JsonMap = Map<String, Any?>
 
 object Type {
     /** @see ConnectionInit */
@@ -82,8 +82,8 @@ sealed class ServerToClientMessage<out T> : OperationMessage<T>
  * @param payload optional parameters that the client specifies in connectionParams
  */
 class ConnectionInit(
-        override val payload: JsonObject = emptyMap()
-) : ClientToServerMessage<JsonObject>() {
+        override val payload: JsonMap = emptyMap()
+) : ClientToServerMessage<JsonMap>() {
 
     override val type = Type.GQL_CONNECTION_INIT
     override val id = null
@@ -108,7 +108,7 @@ class Start(
             val query: String,
 
             /** Object with GraphQL variables. */
-            val variables: JsonObject? = null,
+            val variables: JsonMap? = null,
 
             /** GraphQL operation name */
             val operationName: String? = null
@@ -143,7 +143,7 @@ class ConnectionTerminate : ClientToServerMessage<Nothing>() {
  *
  * @param payload the server side error
  */
-class ConnectionError(override val payload: JsonObject) : ServerToClientMessage<JsonObject>() {
+class ConnectionError(override val payload: JsonMap) : ServerToClientMessage<JsonMap>() {
     override val type = Type.GQL_CONNECTION_ERROR
     override val id = null
 }
@@ -205,8 +205,8 @@ class Data(
  */
 class Error(
         override val id: String,
-        override val payload: JsonObject
-) : ServerToClientMessage<JsonObject>() {
+        override val payload: JsonMap
+) : ServerToClientMessage<JsonMap>() {
     override val type = Type.GQL_ERROR
 }
 

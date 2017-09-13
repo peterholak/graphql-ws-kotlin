@@ -87,11 +87,11 @@ class DefaultSubscriptions<Client>(val schema: GraphQLSchema) : Subscriptions<Cl
                 .add(function)
     }
 
-    class ToNotify(val name: String, val arguments: JsonObject)
+    class ToNotify(val name: String, val arguments: JsonMap)
 }
 
 // TODO: a better way to obtain this information?
-fun subscriptionToNotify(document: Document, schema: GraphQLSchema, operationName: String? = null, variables: JsonObject? = null): DefaultSubscriptions.ToNotify {
+fun subscriptionToNotify(document: Document, schema: GraphQLSchema, operationName: String? = null, variables: JsonMap? = null): DefaultSubscriptions.ToNotify {
     val definitions = document.definitions
     val definition = when {
         definitions.isEmpty() ->
@@ -121,8 +121,8 @@ fun subscriptionToNotify(document: Document, schema: GraphQLSchema, operationNam
             ?: throw IllegalArgumentException("Subscription ${subscription.name} not found in schema.")
 
     val resolver = ValuesResolver()
-    val variableValues: JsonObject = resolver.getVariableValues(schema, definition.variableDefinitions, variables)
-    val values: JsonObject = resolver.getArgumentValues(
+    val variableValues: JsonMap = resolver.getVariableValues(schema, definition.variableDefinitions, variables)
+    val values: JsonMap = resolver.getArgumentValues(
             subscriptionSchema.arguments,
             subscription.arguments,
             variableValues
