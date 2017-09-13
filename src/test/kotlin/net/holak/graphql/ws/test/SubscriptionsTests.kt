@@ -41,7 +41,7 @@ object DefaultSubscriptionsSpec : Spek({
         it("returns all the raw arguments with the correct type") {
             val result = subscriptionToNotify(Parser().parseDocument("subscription S { withArguments(a: 8) }"), schema)
             assertEquals("withArguments", result.name)
-            assertEquals(mapOf("a" to 8, "b" to null), result.arguments)
+            assertEquals(mapOf("a" to 8), result.arguments)
         }
 
         it("returns arguments passed via variables with the correct type") {
@@ -52,7 +52,7 @@ object DefaultSubscriptionsSpec : Spek({
                     schema,
                     variables = variables
             )
-            assertEquals(mapOf("a" to 5, "b" to null), result.arguments)
+            assertEquals(mapOf("a" to 5), result.arguments)
         }
 
     }

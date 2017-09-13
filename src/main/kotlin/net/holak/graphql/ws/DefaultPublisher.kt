@@ -1,5 +1,6 @@
 package net.holak.graphql.ws
 
+import graphql.ExecutionInput
 import graphql.GraphQL
 import mu.KLogging
 
@@ -18,12 +19,13 @@ class DefaultPublisher<Client>(val graphQL: GraphQL, val subscriptions: Subscrip
 
             // TODO: Some deduplication would be useful here?
             // TODO: also conversion of all those variables every time can be pretty slow
-            val result = graphQL.execute(
+            val result = graphQL.execute(ExecutionInput(
                     subscription.start.payload.query,
                     subscription.start.payload.operationName,
                     data,
+                    null,
                     subscription.start.payload.variables ?: emptyMap()
-            )
+            ))
 
             try {
                 transport(it.client, Data(subscription.start.id, result))

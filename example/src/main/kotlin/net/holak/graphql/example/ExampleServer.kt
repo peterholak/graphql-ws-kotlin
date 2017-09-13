@@ -2,24 +2,16 @@ package net.holak.graphql.example
 
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
-import graphql.ExecutionResult
+import graphql.ExecutionInput
 import graphql.GraphQL
-import graphql.GraphQLError
 import net.holak.graphql.ws.Publisher
-import net.holak.graphql.ws.Subscriptions
 import net.holak.graphql.ws.SubscriptionWebSocketHandler
+import net.holak.graphql.ws.Subscriptions
 import org.eclipse.jetty.websocket.api.Session
 import spark.Response
 import spark.Service
 import java.io.PrintWriter
 import java.io.StringWriter
-
-class SkipEmptyErrors(result: ExecutionResult) {
-    val errors: List<GraphQLError>? = if (result.errors.isEmpty()) { null } else { result.errors }
-    val extensions: Map<*, *>? = result.extensions
-    val data: Any? = result.getData<Any>()
-
-}
 
 class ExampleServer(subscriptions: Subscriptions<Session>, val graphQL: GraphQL, val publisher: Publisher) {
     val http = Service.ignite()!!
@@ -75,8 +67,15 @@ class ExampleServer(subscriptions: Subscriptions<Session>, val graphQL: GraphQL,
 
                 @Suppress("UNCHECKED_CAST")
                 val variables = body["variables"] as Map<String, Any?>? ?: emptyMap()
-                val result = graphQL.execute(body["query"] as String, body["operationName"] as String?, null, variables)
-                return@post gson.toJson(SkipEmptyErrors(result))
+
+                val result = graphQL.execute(ExecutionInput(
+                        body["query"] as String,
+                        body["operationName"] as String?,
+                        null,
+                        null,
+                        variables
+                ))
+                return@post gson.toJson(result.toSpecification())
             }catch(e: Exception) {
                 return@post exceptionToJson(e)
             }
