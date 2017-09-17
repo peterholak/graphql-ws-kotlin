@@ -47,6 +47,7 @@ compile 'com.github.peterholak:graphql-ws-kotlin:-SNAPSHOT'
     - currently, it runs the subscription query for every subscriber, even if the query is the same
     - support for batching notifications would be nice
     - as far as I can tell, variables are also needlessly coerced into the correct type on every `publish()` (it is sufficient to do this just once)
+    - use asynchronous GraphQL query execution in `publish()`
 - thread safety
 - tests for more cases (especially write tests where the stubs currently are)
 - the setup is still a bit too complicated, untangle the cyclical dependencies (see [`Main.kt`](example/src/main/kotlin/net/holak/graphql/example/Main.kt) in the example project)
