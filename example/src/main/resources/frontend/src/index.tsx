@@ -10,12 +10,12 @@ const host = window.location.host
 // const host = 'localhost:4567'
 
 const subscriptionClient = new SubscriptionClient(
-    'ws://' + host + "/subscriptions",
+    (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + host + "/subscriptions",
     { reconnect: true }
 )
 
 function postFetcher(payload: any) {
-    return fetch('http://' + host + '/graphql', {
+    return fetch(window.location.protocol + '//' + host + '/graphql', {
             method: 'post',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
