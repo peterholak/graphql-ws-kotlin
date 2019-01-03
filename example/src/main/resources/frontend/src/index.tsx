@@ -90,7 +90,7 @@ class App extends React.Component<{}, State> {
     }
 
     publishText() {
-        fetch("http://" + host + "/publish-text", {
+        fetch(window.location.protocol + "//" + host + "/publish-text", {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ value: this.publishTextElement.value })
